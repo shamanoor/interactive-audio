@@ -3,23 +3,54 @@ import processing.sound.*;
 
 SoundFile song;
 Capture cam;
+AudioIn mic;
+Amplitude analyzer;
 
 color trackColor;
+boolean clapping = false;
+
 
 void setup() {
   size(640, 480);
-  
+
   cam = new Capture(this, Capture.list()[0]);
   song = new SoundFile(this, "Vald - Eurotrap.mp3");
+  mic = new AudioIn(this, 0);
+  analyzer = new Amplitude(this);
 
   cam.start();
   song.play();
+  mic.start();
+  analyzer.input(mic);
 }
 
 void draw() {
   cam.loadPixels();
   image(cam, 0, 0);
-  float closestMatch = 500;
+
+  // edit audio using mouseX, mouseY etc...
+  // then decide upon a mapping
+  float speed = map(mouseX, 0, width, 0.1, 1);
+  song.rate(speed);
+
+  float volume = map(mouseY, 0, height, 0.1, 1);
+  song.amp(volume);
+
+  // check if clapping, if clap, then toggle play/stop music
+  listenForClap();
+}
+
+void captureEvent(Capture input) {
+  input.read();
+}
+
+void mousePressed() {
+  int loc = mouseX + mouseY * cam.width;
+  trackColor = cam.pixels[loc];
+}
+
+void findClosestMatch() {
+  float currentClosest = 500;
 
   // (x,y) coordinate of closest color
   int closestX = 0;
@@ -45,32 +76,39 @@ void draw() {
       // If current color is more similar to tracked
       // color than closest color, save current location
       // and current difference
-      if (d < closestMatch) {
-        closestMatch = d;
+      if (d < currentClosest) {
+        currentClosest = d;
         closestX = x;
         closestY = y;
       }
     }
   }
 
-  if (closestMatch < 10) {
+  if (currentClosest < 10) {
     // Draw a circle at the tracked pixel
     fill(trackColor);
     strokeWeight(4);
     stroke(0);
     ellipse(closestX, closestY, 16, 16);
   }
-  
-  // edit audio using mouseX, mouseY etc...
-  // then decide upon a mapping
-  
 }
 
-void captureEvent(Capture input) {
-  input.read();
-}
+void listenForClap() {
+  float micVolume = analyzer.analyze();
+  float clapLevel = 0.4; // How loud is a clap
+  float threshold = 0.25; // How quiet is silence
 
-void mousePressed() {
-  int loc = mouseX + mouseY * cam.width;
-  trackColor = cam.pixels[loc];
+  println(micVolume); 
+
+  if (micVolume > clapLevel && !clapping) {
+    clapping = true; // I am now clapping!
+    println("clap!");
+    if (song.isPlaying()) {
+      song.pause();
+    } else {
+      song.play();
+    }
+  } else if (clapping && micVolume < threshold) {
+    clapping = false;
+  }
 }
