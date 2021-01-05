@@ -8,12 +8,15 @@ Amplitude analyzer;
 
 color trackColor;
 boolean clapping = false;
-
+String[] effects;
+int index;
 
 void setup() {
   size(640, 480);
 
-  cam = new Capture(this, Capture.list()[0]);
+  effects = new String[]{"none", "blue", "red", "green"};
+
+  cam = new Capture(this, "USB2.0 HD UVC WebCam");
   song = new SoundFile(this, "Vald - Eurotrap.mp3");
   mic = new AudioIn(this, 0);
   analyzer = new Amplitude(this);
@@ -27,6 +30,15 @@ void setup() {
 void draw() {
   cam.loadPixels();
   image(cam, 0, 0);
+
+  if (screenIsBlacked()) {
+    index = (index + 1) % effects.length;
+    changeEffect(index);
+    println("blackeddd");
+  } else {
+    println("not blackeddd");
+    println("effect: ", effects[index]);
+  }
 
   // edit audio using mouseX, mouseY etc...
   // then decide upon a mapping
@@ -98,8 +110,6 @@ void listenForClap() {
   float clapLevel = 0.4; // How loud is a clap
   float threshold = 0.25; // How quiet is silence
 
-  println(micVolume); 
-
   if (micVolume > clapLevel && !clapping) {
     clapping = true; // I am now clapping!
     println("clap!");
@@ -111,4 +121,47 @@ void listenForClap() {
   } else if (clapping && micVolume < threshold) {
     clapping = false;
   }
+}
+
+void changeEffect(int index) {
+  String effect = effects[index];
+  if (effect == "none") {
+    tint(255);
+    image(cam, 0, 0);
+  } else if ( effect == "blue") {
+    tint(0, 0, 255);
+    image(cam, 0, 0);
+  } else if ( effect == "red") {
+    tint(255, 0, 0);
+    image(cam, 0, 0);
+  } else if ( effect == "green") {
+    tint(0, 255, 0);
+    image(cam, 0, 0);
+  }
+}
+
+boolean screenIsBlacked() {
+  int numBlacked = 0;
+
+  // Begin loop to walk through every pixel
+  for (int x = 0; x < cam.width; x++) {
+    for (int y = 0; y < cam.height; y++) {
+      int loc = x + y * cam.width;
+
+      // What is current color
+      color currentColor = cam.pixels[loc];
+      float r1 = red(currentColor);
+      float g1 = green(currentColor);
+      float b1 = blue(currentColor);
+
+      // If sum of current colors is less than 5
+      if (r1 + g1 + b1 <= 15) {
+        numBlacked += 1;
+      }
+    }
+  }
+  if (numBlacked >= cam.width * cam.height / 2) {
+    return true;
+  } 
+  return false;
 }
