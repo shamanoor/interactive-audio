@@ -7,14 +7,17 @@ AudioIn mic;
 Amplitude analyzer;
 
 color trackColor;
-boolean clapping = false;
+boolean clapping;
 String[] effects;
 int index;
+boolean previousScreenBlacked;
 
 void setup() {
   size(640, 480);
 
   effects = new String[]{"none", "blue", "red", "green"};
+  clapping = false;
+  previousScreenBlacked = false;
 
   cam = new Capture(this, "USB2.0 HD UVC WebCam");
   song = new SoundFile(this, "Vald - Eurotrap.mp3");
@@ -31,13 +34,12 @@ void draw() {
   cam.loadPixels();
   image(cam, 0, 0);
 
-  if (screenIsBlacked()) {
+  if (screenIsBlacked() && !previousScreenBlacked) {
     index = (index + 1) % effects.length;
     changeEffect(index);
-    println("blackeddd");
-  } else {
-    println("not blackeddd");
-    println("effect: ", effects[index]);
+    previousScreenBlacked = true;
+  } else if (!screenIsBlacked()) {
+    previousScreenBlacked = false;
   }
 
   // edit audio using mouseX, mouseY etc...
@@ -155,7 +157,7 @@ boolean screenIsBlacked() {
       float b1 = blue(currentColor);
 
       // If sum of current colors is less than 5
-      if (r1 + g1 + b1 <= 15) {
+      if (brightness(currentColor) <= 6) {
         numBlacked += 1;
       }
     }
