@@ -37,8 +37,10 @@ void draw() {
   if (screenIsBlacked() && !previousScreenBlacked) {
     index = (index + 1) % effects.length;
     changeEffect(index);
+    song.pause();
     previousScreenBlacked = true;
-  } else if (!screenIsBlacked()) {
+  } else if (!screenIsBlacked() && !song.isPlaying()) {
+    song.play();
     previousScreenBlacked = false;
   }
 
@@ -52,6 +54,7 @@ void draw() {
 
   // check if clapping, if clap, then toggle play/stop music
   listenForClap();
+  println(song.isPlaying());
 }
 
 void captureEvent(Capture input) {
@@ -63,49 +66,6 @@ void mousePressed() {
   trackColor = cam.pixels[loc];
 }
 
-void findClosestMatch() {
-  float currentClosest = 500;
-
-  // (x,y) coordinate of closest color
-  int closestX = 0;
-  int closestY = 0;
-
-  // Begin loop to walk through every pixel
-  for (int x = 0; x < cam.width; x++) {
-    for (int y = 0; y < cam.height; y++) {
-      int loc = x + y * cam.width;
-
-      // What is current color
-      color currentColor = cam.pixels[loc];
-      float r1 = red(currentColor);
-      float g1 = green(currentColor);
-      float b1 = blue(currentColor);
-      float r2 = red(trackColor);
-      float g2 = green(trackColor);
-      float b2 = blue(trackColor);
-
-      // Using euclidean distance to compare colors
-      float d = dist(r1, g1, b1, r2, g2, b2);
-
-      // If current color is more similar to tracked
-      // color than closest color, save current location
-      // and current difference
-      if (d < currentClosest) {
-        currentClosest = d;
-        closestX = x;
-        closestY = y;
-      }
-    }
-  }
-
-  if (currentClosest < 10) {
-    // Draw a circle at the tracked pixel
-    fill(trackColor);
-    strokeWeight(4);
-    stroke(0);
-    ellipse(closestX, closestY, 16, 16);
-  }
-}
 
 void listenForClap() {
   float micVolume = analyzer.analyze();
@@ -115,13 +75,9 @@ void listenForClap() {
   if (micVolume > clapLevel && !clapping) {
     clapping = true; // I am now clapping!
     println("clap!");
-    if (song.isPlaying()) {
-      song.pause();
-    } else {
-      song.play();
-    }
   } else if (clapping && micVolume < threshold) {
     clapping = false;
+    println("no clap!");
   }
 }
 
@@ -166,4 +122,48 @@ boolean screenIsBlacked() {
     return true;
   } 
   return false;
+}
+
+void findClosestMatch() {
+  float currentClosest = 500;
+
+  // (x,y) coordinate of closest color
+  int closestX = 0;
+  int closestY = 0;
+
+  // Begin loop to walk through every pixel
+  for (int x = 0; x < cam.width; x++) {
+    for (int y = 0; y < cam.height; y++) {
+      int loc = x + y * cam.width;
+
+      // What is current color
+      color currentColor = cam.pixels[loc];
+      float r1 = red(currentColor);
+      float g1 = green(currentColor);
+      float b1 = blue(currentColor);
+      float r2 = red(trackColor);
+      float g2 = green(trackColor);
+      float b2 = blue(trackColor);
+
+      // Using euclidean distance to compare colors
+      float d = dist(r1, g1, b1, r2, g2, b2);
+
+      // If current color is more similar to tracked
+      // color than closest color, save current location
+      // and current difference
+      if (d < currentClosest) {
+        currentClosest = d;
+        closestX = x;
+        closestY = y;
+      }
+    }
+  }
+
+  if (currentClosest < 10) {
+    // Draw a circle at the tracked pixel
+    fill(trackColor);
+    strokeWeight(4);
+    stroke(0);
+    ellipse(closestX, closestY, 16, 16);
+  }
 }
