@@ -35,8 +35,6 @@ void draw() {
   image(cam, 0, 0);
 
   if (screenIsBlacked() && !previousScreenBlacked) {
-    index = (index + 1) % effects.length;
-    changeEffect(index);
     song.pause();
     previousScreenBlacked = true;
   } else if (!screenIsBlacked() && !song.isPlaying()) {
@@ -52,9 +50,11 @@ void draw() {
   float volume = map(mouseY, 0, height, 0.1, 1);
   song.amp(volume);
 
-  // check if clapping, if clap, then toggle play/stop music
-  listenForClap();
-  println(song.isPlaying());
+  // check if clapping, if clap, then toggle cam effect
+  if (detectedClap()) {
+    index = (index + 1) % effects.length;
+    changeEffect(index);
+  }
 }
 
 void captureEvent(Capture input) {
@@ -67,18 +67,19 @@ void mousePressed() {
 }
 
 
-void listenForClap() {
+boolean detectedClap() {
   float micVolume = analyzer.analyze();
-  float clapLevel = 0.4; // How loud is a clap
-  float threshold = 0.25; // How quiet is silence
+  float clapLevel = 0.40; // How loud is a clap
+  float threshold = 0.35; // How quiet is silence
 
   if (micVolume > clapLevel && !clapping) {
-    clapping = true; // I am now clapping!
     println("clap!");
+    return true; // I am now clapping!
   } else if (clapping && micVolume < threshold) {
-    clapping = false;
     println("no clap!");
+    clapping = false;
   }
+  return false;
 }
 
 void changeEffect(int index) {
@@ -108,9 +109,6 @@ boolean screenIsBlacked() {
 
       // What is current color
       color currentColor = cam.pixels[loc];
-      float r1 = red(currentColor);
-      float g1 = green(currentColor);
-      float b1 = blue(currentColor);
 
       // If sum of current colors is less than 5
       if (brightness(currentColor) <= 6) {
