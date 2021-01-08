@@ -11,6 +11,7 @@ boolean clapping;
 String[] effects;
 int index;
 boolean previousScreenBlacked;
+PImage previousFrame;
 
 void setup() {
   size(640, 480);
@@ -23,6 +24,7 @@ void setup() {
   song = new SoundFile(this, "Vald - Eurotrap.mp3");
   mic = new AudioIn(this, 0);
   analyzer = new Amplitude(this);
+  previousFrame = createImage(cam.width, cam.height, RGB);
 
   cam.start();
   song.play();
@@ -44,7 +46,10 @@ void draw() {
 
   // edit audio using mouseX, mouseY etc...
   // then decide upon a mapping
-  float speed = map(mouseX, 0, width, 0.1, 1);
+  //float speed = map(mouseX, 0, width, 0.1, 1);
+
+  float motion = getAverageMotion();
+  float speed = map(motion, 15, 55, 0.1, 1);
   song.rate(speed);
 
   float volume = map(mouseY, 0, height, 0.1, 1);
@@ -55,9 +60,17 @@ void draw() {
     index = (index + 1) % effects.length;
     changeEffect(index);
   }
+
+  println("average motion: ", getAverageMotion());
 }
 
 void captureEvent(Capture input) {
+  // store previous frame to do motion detection
+  previousFrame.copy(input, 0, 0, input.width, input.height, 
+    0, 0, input.width, input.height);
+  previousFrame.updatePixels();
+
+  // read new frame
   input.read();
 }
 
@@ -120,6 +133,36 @@ boolean screenIsBlacked() {
     return true;
   } 
   return false;
+}
+
+// function to calculate how much motion was detected 
+float getAverageMotion() {
+  float totalDiff = 0;
+
+  for (int x=0; x<cam.width; x++) {
+    for (int y=0; y<cam.height; y++) {
+      int loc = x + y*cam.width;
+      color currentPixel = cam.pixels[loc];
+      color previousPixel = previousFrame.pixels[loc];
+
+      float r1 = red(currentPixel);
+      float g1 = green(currentPixel);
+      float b1 = blue(currentPixel);
+      float r2 = red(previousPixel);
+      float g2 = green(previousPixel);
+      float b2 = blue(previousPixel);
+
+      // compute difference between current and previous pixel
+
+      float diff = dist(r1, r2, b1, b2, g1, g2);
+
+      totalDiff += diff;
+    }
+  }
+
+  // average motion is computed as average difference of all pixels
+  // between current and previous frame
+  return totalDiff/(cam.pixels.length);
 }
 
 void findClosestMatch() {
