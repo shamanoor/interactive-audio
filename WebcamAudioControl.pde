@@ -38,15 +38,16 @@ void draw() {
 
   if (screenIsBlacked() && !previousScreenBlacked) {
     song.pause();
+
+    // change camera effect
+    index = (index + 1) % effects.length;
+    changeEffect(index);
+    
     previousScreenBlacked = true;
   } else if (!screenIsBlacked() && !song.isPlaying()) {
     song.play();
     previousScreenBlacked = false;
   }
-
-  // edit audio using mouseX, mouseY etc...
-  // then decide upon a mapping
-  //float speed = map(mouseX, 0, width, 0.1, 1);
 
   float motion = getAverageMotion();
   float speed = map(motion, 15, 55, 0.1, 1);
@@ -54,14 +55,6 @@ void draw() {
 
   float volume = map(mouseY, 0, height, 0.1, 1);
   song.amp(volume);
-
-  // check if clapping, if clap, then toggle cam effect
-  if (detectedClap()) {
-    index = (index + 1) % effects.length;
-    changeEffect(index);
-  }
-
-  println("average motion: ", getAverageMotion());
 }
 
 void captureEvent(Capture input) {
