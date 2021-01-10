@@ -12,6 +12,9 @@ String[] effects;
 int index;
 boolean previousScreenBlacked;
 PImage previousFrame;
+float motion;
+
+Timer timer;
 
 void setup() {
   size(640, 480);
@@ -19,17 +22,21 @@ void setup() {
   effects = new String[]{"none", "blue", "red", "green"};
   clapping = false;
   previousScreenBlacked = false;
+  motion = 1;
 
   cam = new Capture(this, "USB2.0 HD UVC WebCam");
   song = new SoundFile(this, "Vald - Eurotrap.mp3");
   mic = new AudioIn(this, 0);
   analyzer = new Amplitude(this);
   previousFrame = createImage(cam.width, cam.height, RGB);
+  timer = new Timer(1000);
 
   cam.start();
   song.play();
   mic.start();
   analyzer.input(mic);
+
+  timer.start();
 }
 
 void draw() {
@@ -42,14 +49,20 @@ void draw() {
     // change camera effect
     index = (index + 1) % effects.length;
     changeEffect(index);
-    
+
     previousScreenBlacked = true;
   } else if (!screenIsBlacked() && !song.isPlaying()) {
     song.play();
     previousScreenBlacked = false;
   }
 
-  float motion = getAverageMotion();
+  if (timer.isFinished()) {
+    motion = getAverageMotion();
+    timer.start();
+    println("time!");
+  } else {
+    println("motion: ", motion);
+  }
   float speed = map(motion, 15, 55, 0.1, 1);
   song.rate(speed);
 
