@@ -15,6 +15,7 @@ PImage previousFrame;
 float motion;
 
 Timer timer;
+MotionPlot plot;
 
 void setup() {
   size(640, 480);
@@ -30,6 +31,7 @@ void setup() {
   analyzer = new Amplitude(this);
   previousFrame = createImage(cam.width, cam.height, RGB);
   timer = new Timer(1000);
+  plot = new MotionPlot(300, 100);
 
   cam.start();
   song.play();
@@ -37,6 +39,7 @@ void setup() {
   analyzer.input(mic);
 
   timer.start();
+  plot.initialize();
 }
 
 void draw() {
@@ -68,6 +71,9 @@ void draw() {
 
   float volume = map(mouseY, 0, height, 0.1, 1);
   song.amp(volume);
+  
+  plot.update(motion);
+  plot.display();
 }
 
 void captureEvent(Capture input) {
