@@ -30,8 +30,8 @@ void setup() {
   mic = new AudioIn(this, 0);
   analyzer = new Amplitude(this);
   previousFrame = createImage(cam.width, cam.height, RGB);
-  timer = new Timer(1000);
-  plot = new MotionPlot(300, 100);
+  timer = new Timer(1);
+  plot = new MotionPlot(300, 150);
 
   cam.start();
   song.play();
