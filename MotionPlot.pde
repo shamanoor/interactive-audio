@@ -26,11 +26,13 @@ class MotionPlot {
   }
 
 
-  void display() {
+  void display(boolean displayBackground) {
     // display plot with white background
-    fill(255);
-    rect(width-plotWidth, height-plotHeight, plotWidth, plotHeight);
-    
+    if (displayBackground) {
+      fill(255);
+      rect(width-plotWidth, height-plotHeight, plotWidth, plotHeight);
+    }
+
     // display motionvalues as points. This is how we go about it:
     // we loop over motion FROM BACK TO FRONT and then display a point
     // on top of our rectangle. we use red dots/ellipses?
@@ -38,7 +40,6 @@ class MotionPlot {
     fill(255, 0, 0);
     for (int i=motions.length - 1; i>=0; i--) {
       ellipse(width - 2*i, height - motions[i], 5, 5);
-      println("motions[i]: ", motions[i]);
     }
   }
 }

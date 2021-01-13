@@ -16,6 +16,8 @@ float motion;
 
 Timer timer;
 MotionPlot plot;
+MovingAverage movingAverage;
+MotionPlot averageMotionPlot;
 
 void setup() {
   size(640, 480);
@@ -32,6 +34,8 @@ void setup() {
   previousFrame = createImage(cam.width, cam.height, RGB);
   timer = new Timer(1);
   plot = new MotionPlot(300, 150);
+  averageMotionPlot = new MotionPlot(300, 150);
+  movingAverage = new MovingAverage(50);
 
   cam.start();
   song.play();
@@ -40,6 +44,7 @@ void setup() {
 
   timer.start();
   plot.initialize();
+  averageMotionPlot.initialize();
 }
 
 void draw() {
@@ -60,20 +65,30 @@ void draw() {
   }
 
   if (timer.isFinished()) {
-    motion = getAverageMotion();
+    motion = getMotion();
     timer.start();
+
+    // update moving average
+    movingAverage.update(motion);
     println("time!");
   } else {
     println("motion: ", motion);
   }
-  float speed = map(motion, 15, 55, 0.1, 1);
+  float motionMA = movingAverage.getAverage();
+  float speed = map(motionMA, 15, 55, 0.1, 1);
   song.rate(speed);
 
   float volume = map(mouseY, 0, height, 0.1, 1);
   song.amp(volume);
-  
+
   plot.update(motion);
-  plot.display();
+  plot.display(true);
+
+  averageMotionPlot.update(motionMA);
+
+  averageMotionPlot.display(false);
+
+  println("moving average: ", movingAverage.getAverage());
 }
 
 void captureEvent(Capture input) {
@@ -148,7 +163,7 @@ boolean screenIsBlacked() {
 }
 
 // function to calculate how much motion was detected 
-float getAverageMotion() {
+float getMotion() {
   float totalDiff = 0;
 
   for (int x=0; x<cam.width; x++) {
