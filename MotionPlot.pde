@@ -26,7 +26,7 @@ class MotionPlot {
   }
 
 
-  void display(boolean displayBackground) {
+  void display(boolean displayBackground, color fillColor) {
     // display plot with white background
     if (displayBackground) {
       fill(255);
@@ -37,7 +37,7 @@ class MotionPlot {
     // we loop over motion FROM BACK TO FRONT and then display a point
     // on top of our rectangle. we use red dots/ellipses?
     noStroke();
-    fill(255, 0, 0);
+    fill(fillColor);
     for (int i=motions.length - 1; i>=0; i--) {
       ellipse(width - 2*i, height - motions[i], 5, 5);
     }
