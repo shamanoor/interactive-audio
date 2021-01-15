@@ -6,13 +6,15 @@ Capture cam;
 AudioIn mic;
 Amplitude analyzer;
 
-color trackColor;
-boolean clapping;
 String[] effects;
 int index;
 boolean previousScreenBlacked;
 PImage previousFrame;
 float motion;
+float[] boundaryValues;
+float absoluteMin;
+float absoluteMax;
+PFont f;
 
 Timer timer;
 MotionPlot plot;
@@ -23,16 +25,16 @@ void setup() {
   size(640, 480);
 
   effects = new String[]{"none", "blue", "red", "green"};
-  clapping = false;
   previousScreenBlacked = false;
   motion = 1;
+  f = createFont("Georgia", 16);
 
   cam = new Capture(this, "USB2.0 HD UVC WebCam");
   song = new SoundFile(this, "Vald - Eurotrap.mp3");
   mic = new AudioIn(this, 0);
   analyzer = new Amplitude(this);
   previousFrame = createImage(cam.width, cam.height, RGB);
-  timer = new Timer(1);
+  timer = new Timer();
   plot = new MotionPlot(300, 150);
   averageMotionPlot = new MotionPlot(300, 150);
   movingAverage = new MovingAverage(50);
@@ -42,9 +44,63 @@ void setup() {
   mic.start();
   analyzer.input(mic);
 
-  timer.start();
   plot.initialize();
   averageMotionPlot.initialize();
+
+  // assign initial values to absoluteMin and absoluteMax
+  // can be updated using a call to calibrate()
+  absoluteMin = 10;
+  absoluteMax = 70;
+}
+
+void calibrate() {
+  float currentMotion;
+
+  absoluteMin = 1000;
+  absoluteMax = -1000;
+
+  println("calibrating");
+
+  // print out information to screen, let it on screen for like 5 seconds or something
+  timer.set(5000);
+
+  timer.start();
+  println("Get ready to stand still!");
+  // give time to prepare
+  while (!timer.isFinished()) {
+    // wait
+  }
+
+  timer.start();
+  println("Stand still!");
+  // give first instruction: stand still
+  while (!timer.isFinished()) {
+    println("getMotion(): ", getMotion());
+    currentMotion = getMotion();
+    if (currentMotion < absoluteMin) {
+      absoluteMin = currentMotion;
+    }
+  }
+
+  timer.start();
+  println("Get ready to dance like crazy!");
+  // give first instruction: stand still
+  while (!timer.isFinished()) {
+    // wait
+  }
+
+  println("Dance like crazy!");
+  timer.start();
+  // give first instruction: stand still
+  while (!timer.isFinished()) {
+    println("getMotion(): ", getMotion());
+    currentMotion = getMotion();
+    if (currentMotion > absoluteMax) {
+      absoluteMax = currentMotion;
+    }
+  }
+
+  println("absoluteMin: ", absoluteMin, "absoluteMax: ", absoluteMax);
 }
 
 void draw() {
@@ -64,18 +120,12 @@ void draw() {
     previousScreenBlacked = false;
   }
 
-  if (timer.isFinished()) {
-    motion = getMotion();
-    timer.start();
+  motion = getMotion();
+  // update moving average
+  movingAverage.update(motion);
 
-    // update moving average
-    movingAverage.update(motion);
-    println("time!");
-  } else {
-    println("motion: ", motion);
-  }
   float motionMA = movingAverage.getAverage();
-  float speed = map(motionMA, 15, 55, 0.1, 1);
+  float speed = map(motionMA, absoluteMin, absoluteMax, 0.1, 1.4);
   song.rate(speed);
 
   float volume = map(mouseY, 0, height, 0.1, 1);
@@ -88,7 +138,7 @@ void draw() {
 
   averageMotionPlot.display(false, color(0, 255, 0));
 
-  println("moving average: ", movingAverage.getAverage());
+  //println("moving average: ", movingAverage.getAverage());
 }
 
 void captureEvent(Capture input) {
@@ -170,4 +220,9 @@ float getMotion() {
   // average motion is computed as average difference of all pixels
   // between current and previous frame
   return totalDiff/(cam.pixels.length);
+}
+
+void keyPressed() {
+  println("Start calibration process");
+  calibrate();
 }

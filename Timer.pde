@@ -2,10 +2,13 @@ class Timer {
   int startTime;
   int duration;
 
-  Timer(int duration_) {
-    duration = duration_;
+  Timer() {
   }
-
+  
+  void set(int duration_) {
+    duration = duration_;  
+  }
+  
   void start() {
     startTime = millis();
   }
@@ -15,5 +18,9 @@ class Timer {
       return true;
     }
     return false;
+  }
+  
+  int getRemainingTime() {
+    return millis() - startTime;
   }
 }
