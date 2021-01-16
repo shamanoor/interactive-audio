@@ -9,6 +9,7 @@ Amplitude analyzer;
 String[] effects;
 int index;
 boolean previousScreenBlacked;
+boolean displayPlot;
 PImage previousFrame;
 float motion;
 float[] boundaryValues;
@@ -127,18 +128,20 @@ void draw() {
   float motionMA = movingAverage.getAverage();
   float speed = map(motionMA, absoluteMin, absoluteMax, 0.1, 1.4);
   song.rate(speed);
+  
+  println("motionMA: ", motionMA);
+  println("speed: ", speed);
 
   float volume = map(mouseY, 0, height, 0.1, 1);
   song.amp(volume);
 
   plot.update(motion);
-  plot.display(true, color(255, 0, 0));
-
   averageMotionPlot.update(motionMA);
 
-  averageMotionPlot.display(false, color(0, 255, 0));
-
-  //println("moving average: ", movingAverage.getAverage());
+  if (displayPlot) {
+    plot.display(true, color(255, 0, 0));
+    averageMotionPlot.display(false, color(0, 255, 0));
+  }
 }
 
 void captureEvent(Capture input) {
@@ -223,6 +226,12 @@ float getMotion() {
 }
 
 void keyPressed() {
-  println("Start calibration process");
-  calibrate();
+  if (key == ' ') {
+    println("Start calibration process");
+    calibrate();
+  }
+
+  if (key=='p') {
+    displayPlot = !displayPlot;
+  }
 }
