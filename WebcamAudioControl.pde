@@ -15,6 +15,7 @@ float motion;
 float[] boundaryValues;
 float absoluteMin;
 float absoluteMax;
+float speed;
 PFont f;
 
 Timer timer;
@@ -38,7 +39,7 @@ void setup() {
   timer = new Timer();
   plot = new MotionPlot(300, 150);
   averageMotionPlot = new MotionPlot(300, 150);
-  movingAverage = new MovingAverage(50);
+  movingAverage = new MovingAverage(100);
 
   cam.start();
   song.play();
@@ -52,6 +53,8 @@ void setup() {
   // can be updated using a call to calibrate()
   absoluteMin = 10;
   absoluteMax = 70;
+  
+  // constain value for speed  
 }
 
 void calibrate() {
@@ -126,7 +129,8 @@ void draw() {
   movingAverage.update(motion);
 
   float motionMA = movingAverage.getAverage();
-  float speed = map(motionMA, absoluteMin, absoluteMax, 0.1, 1.4);
+  speed = map(motionMA, absoluteMin, absoluteMax, 0.1, 1.5);
+  speed = constrain(speed, 0.1, 1.5);
   song.rate(speed);
   
   println("motionMA: ", motionMA);
