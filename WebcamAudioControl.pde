@@ -22,6 +22,7 @@ Timer timer;
 MotionPlot plot;
 MovingAverage movingAverage;
 MotionPlot averageMotionPlot;
+Visual visual;
 
 void setup() {
   size(640, 480);
@@ -40,6 +41,7 @@ void setup() {
   plot = new MotionPlot(300, 150);
   averageMotionPlot = new MotionPlot(300, 150);
   movingAverage = new MovingAverage(100);
+  visual = new Visual();
 
   cam.start();
   song.play();
@@ -146,6 +148,8 @@ void draw() {
     plot.display(true, color(255, 0, 0));
     averageMotionPlot.display(false, color(0, 255, 0));
   }
+  
+  visual.display(motionMA);
 }
 
 void captureEvent(Capture input) {
