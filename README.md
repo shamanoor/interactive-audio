@@ -1,4 +1,3 @@
 # interactive-audio
-Project initialization
 
-Intention of project is to interact with audio through webcam interaction. Intending to use blob detection in Processing.
+The intention of this project is to interact with the audio speed of a song through motion. The motion is detected by a webcam.
