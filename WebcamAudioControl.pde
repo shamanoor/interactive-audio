@@ -6,6 +6,8 @@ Capture cam;
 AudioIn mic;
 Amplitude analyzer;
 
+Shape shape;
+
 String[] effects;
 int index;
 boolean previousScreenBlacked;
@@ -51,12 +53,15 @@ void setup() {
   plot.initialize();
   averageMotionPlot.initialize();
 
+  shape = new Shape(300, 15, 14);
+  shape.initialize();
+
   // assign initial values to absoluteMin and absoluteMax
   // can be updated using a call to calibrate()
   absoluteMin = 10;
   absoluteMax = 70;
-  
-  // constain value for speed  
+
+  // constain value for speed
 }
 
 void calibrate() {
@@ -134,7 +139,7 @@ void draw() {
   speed = map(motionMA, absoluteMin, absoluteMax, 0.1, 1.5);
   speed = constrain(speed, 0.1, 1.5);
   song.rate(speed);
-  
+
   println("motionMA: ", motionMA);
   println("speed: ", speed);
 
@@ -148,8 +153,11 @@ void draw() {
     plot.display(true, color(255, 0, 0));
     averageMotionPlot.display(false, color(0, 255, 0));
   }
-  
+
   visual.display(motionMA);
+
+  shape.move();
+  shape.display();
 }
 
 void captureEvent(Capture input) {
