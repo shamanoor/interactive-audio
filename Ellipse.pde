@@ -48,6 +48,10 @@ class Ellipse {
     this.x = newX;
     this.y = newY;
   }
+  
+  void updateSpeed(float speed_) {
+    this.speed = speed_;
+  }
 
   boolean hovering() {
     if (mouseX >= (x - size/2) && mouseX <= (x + size/2)

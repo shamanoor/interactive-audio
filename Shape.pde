@@ -11,10 +11,10 @@ class Shape {
   // to control shape size
   int maxOuterRadius;
   int maxInnerRadius;
-  
+
   // then we need to define these two based on the radius of the shape probably...?
   // and then... or better to do this in the Ellipse class??...
-  
+
   Shape(int radius_, int pointSize_, int numPoints_) {
     this.radius = radius_;
     this.pointSize = pointSize_;
@@ -54,6 +54,13 @@ class Shape {
         points[i].update(mouseX, mouseY);
         points[i].display();
       }
+    }
+  }
+
+  void updateSpeed(float currentSpeed) {
+    for (int i=0; i<points.length; i++) {
+      // update control points with where they have been dragged to
+      points[i].updateSpeed(currentSpeed);
     }
   }
 

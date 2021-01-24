@@ -60,8 +60,6 @@ void setup() {
   // can be updated using a call to calibrate()
   absoluteMin = 10;
   absoluteMax = 70;
-
-  // constain value for speed
 }
 
 void calibrate() {
@@ -110,7 +108,6 @@ void calibrate() {
       absoluteMax = currentMotion;
     }
   }
-
   println("absoluteMin: ", absoluteMin, "absoluteMax: ", absoluteMax);
 }
 
@@ -154,8 +151,12 @@ void draw() {
     averageMotionPlot.display(false, color(0, 255, 0));
   }
 
-  visual.display(motionMA);
+  float shapeSpeed = map(motionMA, absoluteMin, absoluteMax, 0.1, 3.5);
+  float visualSize = map(motionMA, absoluteMin, absoluteMax, 10, 150);
+  
+  visual.display(visualSize);
 
+  shape.updateSpeed(shapeSpeed);
   shape.move();
   shape.display();
 }
