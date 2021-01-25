@@ -19,6 +19,7 @@ float absoluteMin;
 float absoluteMax;
 float speed;
 PFont f;
+boolean callibrationBegan;
 
 Timer timer;
 MotionPlot plot;
@@ -44,11 +45,13 @@ void setup() {
   averageMotionPlot = new MotionPlot(300, 150);
   movingAverage = new MovingAverage(100);
   visual = new Visual();
+  callibrationBegan = false;
 
   cam.start();
   song.play();
   mic.start();
   analyzer.input(mic);
+  timer.set(10000);
 
   plot.initialize();
   averageMotionPlot.initialize();
@@ -57,12 +60,14 @@ void setup() {
   shape.initialize();
 
   // assign initial values to absoluteMin and absoluteMax
-  // can be updated using a call to calibrate()
-  absoluteMin = 10;
-  absoluteMax = 70;
+  // can be updated using a call to calibrate()  
+  absoluteMin = 100;
+  absoluteMax = 0;
+
+  timer.start();
 }
 
-void calibrate() {
+void calibrate() {  
   float currentMotion;
 
   absoluteMin = 1000;
@@ -115,6 +120,27 @@ void draw() {
   cam.loadPixels();
   image(cam, 0, 0);
 
+  // calibration
+  if (!timer.isFinished()) {
+    if (!callibrationBegan) {
+      // introduce delay to avoid faulty measurements/outliers
+      delay(1000); 
+      callibrationBegan = true;
+    }
+
+    println("Calibrating...");
+    println("absoluteMax: ", absoluteMax);
+    println("absoluteMin: ", absoluteMin);
+    float currentMotion = getMotion();
+    if (currentMotion > absoluteMax) {
+      absoluteMax = currentMotion;
+    }
+
+    if (currentMotion < absoluteMin) {
+      absoluteMin = currentMotion;
+    }
+  }
+
   if (screenIsBlacked() && !previousScreenBlacked) {
     song.pause();
 
@@ -153,10 +179,13 @@ void draw() {
 
   float shapeSpeed = map(motionMA, absoluteMin, absoluteMax, 0.1, 3.5);
   float visualSize = map(motionMA, absoluteMin, absoluteMax, 10, 150);
-  
+
   visual.display(visualSize);
 
-  shape.updateSpeed(shapeSpeed);
+  // update speed of shape changing after callibration completed
+  if (timer.isFinished()) {
+    shape.updateSpeed(shapeSpeed);
+  }
   shape.move();
   shape.display();
 }
